@@ -1,0 +1,37 @@
+name: Deploy Code via Pull on Development
+
+#on:
+#  push:
+#    branches:
+#      - development  # Specify the branch to trigger the action (e.g., 'main')
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'  # Description for the input
+        default: 'development'           # Default branch
+        required: true                   # Make the input required
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Install SSH client
+      run: sudo apt-get update && sudo apt-get install -y ssh
+
+    - name: Add SSH private key
+      uses: webfactory/ssh-agent@v0.5.4
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Pull latest code from GitHub on the server
+      run: |
+        ssh -o StrictHostKeyChecking=no ubuntu@3.110.48.193 "
+          cd /var/www/library-management-project-php &&
+          git checkout development &&
+          git pull origin development"
